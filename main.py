@@ -13,7 +13,7 @@ def toDf(filename="capture_slopes.xls"):
     return df
 
 if __name__ == "__main__":
-    df = toDf("capture_slopes.xls")
+    df = toDf("Copy of capture_slopes.xls")
     nPlots = len(df["treatment"].unique())
     plotgas = ["N2O_N_mug_m2h","CO2_C_mug_m2h"]
 
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     for i_gas,gas in enumerate(plotgas):
         axs[i_gas,0].set_ylabel(gas)
         for treatment in np.sort(df["treatment"].unique()):
-                df[df["treatment"]== treatment].groupby(['nr'])[gas].plot(title = treatment, ax = axs[ i_gas,treatment-1],)
+                df[(df["treatment"]== treatment) ].groupby(['nr'])[gas].plot(title = treatment, ax = axs[ i_gas,treatment-1],)
 
     plt.tight_layout()
     plt.subplots_adjust(wspace=0.02, hspace=0)
