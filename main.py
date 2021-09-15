@@ -31,6 +31,8 @@ def matrixplot(df,
 
             if "I" in params:
                 dx = dx.interpolate()
+                if "M" in params:
+                    smo = 0
 
             if "A" not in params:
                 dx.groupby([subgroup])[gas].plot(title=treatment, ax=axs[i_gas, treatment - 1], )
@@ -40,14 +42,21 @@ def matrixplot(df,
                 std_dev = dx.groupby(dx.index.date).std()
                 min_v =  dx.groupby(dx.index.date).min()
                 max_v = dx.groupby(dx.index.date).max()
-                mean_v.plot(title=treatment, ax=axs[i_gas, treatment - 1])
+
+                if i_gas == 0:
+                    title = treatment
+                else:
+                    title = ""
+
+                mean_v.plot(title=title, ax=axs[i_gas, treatment - 1])
                 if "S" in params:
-                    axs[i_gas, treatment - 1].fill_between(std_dev.index,mean_v+std_dev,mean_v-std_dev,color='blue',alpha = 0.2)
+                    axs[i_gas, treatment - 1].fill_between(std_dev.index,mean_v+std_dev,mean_v-std_dev,color='blue',alpha = 0.2).axis('off')
                 else:
                     axs[i_gas, treatment - 1].fill_between(min_v.index, min_v, max_v, color='blue', alpha=0.2)
 
+    fig.autofmt_xdate(rotation=70)
     plt.tight_layout()
-    plt.subplots_adjust(wspace=0.02, hspace=0)
+    plt.subplots_adjust(wspace=0, hspace=0)
     plt.show()
 
 if __name__ == "__main__":
@@ -56,7 +65,7 @@ if __name__ == "__main__":
     plotcolumns = ["N2O_N_mug_m2h", "CO2_C_mug_m2h"] #the collumns in the excel document to be parsed
     group1 = "treatment" # The first group to sort data by
     subgroup = 'nr' # the second group to sort data by
-    params = "AI" # A = average, S = stdev, I = Interpolate
+    params = "AIM" # A = Average, S = Stdev, I = Interpolate, M = sMooth
     figsize = (20, 15)
 
     df = toDf(filename,
