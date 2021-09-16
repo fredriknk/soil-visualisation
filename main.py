@@ -2,7 +2,10 @@ import pandas as pd
 import matplotlib
 matplotlib.use('TkAgg') # plot as external window
 import matplotlib.pyplot as plt
+plt.ioff()
 import numpy as np
+import multiprocessing
+from scipy import interpolate
 from math import sqrt,floor,ceil
 
 
@@ -26,21 +29,19 @@ def matrixplot(df,
 
     for i_gas, gas in enumerate(plotcolumns):
         axs[i_gas, 0].set_ylabel(gas)
+
         for treatment in np.sort(df[group1].unique()):
-            dx = df[df[group1] == treatment]
+            dt = df[df[group1] == treatment]
 
-            if "I" in params:
-                dx = dx.interpolate()
-                if "M" in params:
-                    smo = 0
+            if "I" in params: # Interpolate missing values
+                dt = dt.interpolate()
 
-            if "A" not in params:
-                dx.groupby([subgroup])[gas].plot(title=treatment, ax=axs[i_gas, treatment - 1], )
-            else:
-                dx = dx[gas]
-                mean_v = dx.groupby(dx.index.date).mean()
+            if "A" in params: #average and get info (std_div, min values, max values
+                dx = dt[gas]
+
+                mean_v = dx.groupby(dx.index.date).mean()#.interpolate(method="spline")
                 std_dev = dx.groupby(dx.index.date).std()
-                min_v =  dx.groupby(dx.index.date).min()
+                min_v = dx.groupby(dx.index.date).min()
                 max_v = dx.groupby(dx.index.date).max()
 
                 if i_gas == 0:
@@ -49,10 +50,16 @@ def matrixplot(df,
                     title = ""
 
                 mean_v.plot(title=title, ax=axs[i_gas, treatment - 1])
+                color = "blue"
                 if "S" in params:
-                    axs[i_gas, treatment - 1].fill_between(std_dev.index,mean_v+std_dev,mean_v-std_dev,color='blue',alpha = 0.2).axis('off')
-                else:
-                    axs[i_gas, treatment - 1].fill_between(min_v.index, min_v, max_v, color='blue', alpha=0.2)
+                    axs[i_gas, treatment - 1].fill_between(std_dev.index,mean_v+std_dev,mean_v-std_dev,color=color,alpha = 0.2)
+                    color = "red"
+                if "X" in params:
+                    axs[i_gas, treatment - 1].fill_between(min_v.index, min_v, max_v, color=color, alpha=0.2)
+                    color = "green"
+            if "R" in params:# If not average, just print all plots individually
+                dt.groupby([subgroup])[gas].plot(title=treatment, ax=axs[i_gas, treatment - 1], )
+
 
     fig.autofmt_xdate(rotation=70)
     plt.tight_layout()
@@ -60,12 +67,12 @@ def matrixplot(df,
     plt.show()
 
 if __name__ == "__main__":
-    filename = "Copy of capture_slopes.xls" #filename for raw data
+    filename = "data/Copy of capture_slopes.xls" #filename for raw data
     date_column = "date"
     plotcolumns = ["N2O_N_mug_m2h", "CO2_C_mug_m2h"] #the collumns in the excel document to be parsed
     group1 = "treatment" # The first group to sort data by
     subgroup = 'nr' # the second group to sort data by
-    params = "AIM" # A = Average, S = Stdev, I = Interpolate, M = sMooth
+    params = "AISX" # A = Average, S = Stdev, I = Interpolate, R = Regular (all graphs superimposed) X = Minmax
     figsize = (20, 15)
 
     df = toDf(filename,
