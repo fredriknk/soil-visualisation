@@ -129,6 +129,4 @@ dmypy.json
 .pyre/
 
 #datafiles
-/data/capture_slopes.xls
-/data/Copy of capture_slopes.xls
-
+*.xls
